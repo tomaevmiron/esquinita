@@ -349,6 +349,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; }
 .match__time .now { color: #93d38c; font-weight: 600; }
 .match__actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .matches__empty { padding: 26px; color: var(--cream-2); }
+.matches__note { margin: 14px 0 0; font-size: .85rem; color: var(--mute); }
 
 .input {
   width: 100%; padding: 13px 14px;

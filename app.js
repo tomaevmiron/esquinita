@@ -60,11 +60,38 @@
       ] }
   };
 
-  /* ——— Próximos partidos (hora de España). Los que ya han acabado se ocultan solos. ——— */
-  const PARTIDOS = [
-    { fecha: '2026-10-21', hora: '21:00', comp: 'Champions League', local: 'Real Madrid', visitante: 'RB Leipzig' },
-    { fecha: '2026-10-25', hora: '21:00', comp: 'LaLiga · El Clásico', local: 'FC Barcelona', visitante: 'Real Madrid', grande: true }
+  /* ——— Partidos: se cargan solos ———
+     De cada equipo se pide su próximo partido a TheSportsDB (gratis, sin registro).
+     Para añadir otro equipo, busca su id en
+     https://www.thesportsdb.com/api/v1/json/123/searchteams.php?t=NOMBRE */
+  const EQUIPOS = [
+    { id: '133739', nombre: 'FC Barcelona', corto: 'Barça' },
+    { id: '133738', nombre: 'Real Madrid', corto: 'Madrid' },
+    { id: '133729', nombre: 'Atlético de Madrid', corto: 'Atlético' },
+    { id: '134700', nombre: 'Girona FC', corto: 'Girona' },
+    { id: '133734', nombre: 'Espanyol', corto: 'Espanyol' },
+    { id: '133909', nombre: 'España', corto: 'la Selección' }
   ];
+  const DERBIS = [
+    ['133739', '133738', 'El Clásico'],
+    ['133738', '133729', 'Derbi madrileño'],
+    ['133739', '133734', 'Derbi barcelonés'],
+    ['133739', '134700', 'Derbi catalán']
+  ];
+  const COMPETICIONES = {
+    'Spanish La Liga': 'LaLiga', 'Spanish La Liga 2': 'LaLiga Hypermotion', 'Spanish Copa del Rey': 'Copa del Rey',
+    'Spanish Super Cup': 'Supercopa', 'UEFA Champions League': 'Champions League', 'UEFA Europa League': 'Europa League',
+    'UEFA Nations League': 'Nations League', 'FIFA World Cup': 'Mundial', 'International Friendlies': 'Amistoso'
+  };
+  const NOMBRES = {
+    'Alaves': 'Alavés', 'Atletico Madrid': 'Atlético de Madrid', 'Atlético Madrid': 'Atlético de Madrid',
+    'Athletic Bilbao': 'Athletic Club', 'Celta Vigo': 'Celta de Vigo', 'Cadiz': 'Cádiz', 'Leganes': 'Leganés',
+    'Malaga': 'Málaga', 'Almeria': 'Almería', 'Deportivo La Coruna': 'Deportivo', 'Bayern Munich': 'Bayern de Múnich',
+    'Spain': 'España'
+  };
+  // Partidos que queráis añadir a mano (hora de España), por si alguno no sale solo:
+  // { fecha: '2026-11-03', hora: '21:00', comp: 'Champions League', local: 'FC Barcelona', visitante: 'Aston Villa' }
+  const PARTIDOS_EXTRA = [];
 
   /* La campaña de cañitas dura todo el invierno */
   const CANITAS_HASTA = '20270331';
@@ -135,10 +162,68 @@
   }
 
   const icon = id => `<svg class="ico" aria-hidden="true"><use href="#${id}"/></svg>`;
-  const upcoming = () => PARTIDOS
-    .map(p => ({ ...p, start: madridToDate(p.fecha, p.hora) }))
-    .filter(p => p.start.getTime() + 2 * 3600e3 > Date.now())
-    .sort((a, b) => a.start - b.start);
+  /* ——— Datos de partidos ——— */
+  let matchData = PARTIDOS_EXTRA.map(p => ({
+    key: `${p.fecha}|${p.local}`, start: madridToDate(p.fecha, p.hora), fecha: p.fecha, hora: p.hora,
+    comp: p.comp, local: p.local, visitante: p.visitante, grande: p.grande || ''
+  }));
+  let matchState = 'loading'; // loading | ok | error
+
+  function fromApi(e) {
+    const known = e.time && e.time !== '00:00:00';
+    const stamp = (e.ts || `${e.date}T${e.time || '00:00:00'}`).replace(' ', 'T');
+    const start = known ? new Date(/Z|[+-]\d\d:?\d\d$/.test(stamp) ? stamp : `${stamp}Z`) : madridToDate(e.date, '23:00');
+    const p = partsAt(start.getTime());
+    const fecha = known ? `${p.y}-${pad(p.m)}-${pad(p.d)}` : e.date;
+    const name = (id, raw) => (EQUIPOS.find(t => t.id === id) || {}).nombre || NOMBRES[raw] || raw;
+    const derbi = DERBIS.find(([a, b]) => [a, b].includes(e.idHome) && [a, b].includes(e.idAway));
+    const comp = COMPETICIONES[e.league] || e.league || 'Fútbol';
+    return {
+      key: `${fecha}|${name(e.idHome, e.home)}`, start, fecha, hora: known ? `${pad(p.h)}:${pad(p.min)}` : null,
+      comp: derbi ? `${comp} · ${derbi[2]}` : comp,
+      local: name(e.idHome, e.home), visitante: name(e.idAway, e.away), grande: derbi ? derbi[2] : ''
+    };
+  }
+
+  // Se guarda 3 horas en el navegador para no repetir la consulta en cada visita
+  const MATCH_CACHE = 'eh-partidos-v1';
+  async function fetchMatches() {
+    try {
+      const c = JSON.parse(localStorage.getItem(MATCH_CACHE) || 'null');
+      if (c && Date.now() - c.t < 3 * 3600e3) return c.data;
+    } catch (err) { /* sin almacenamiento: se consulta igual */ }
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    const res = await Promise.allSettled(EQUIPOS.map(t =>
+      fetch(`https://www.thesportsdb.com/api/v1/json/123/eventsnext.php?id=${t.id}`, { signal: ctrl.signal }).then(r => r.json())));
+    clearTimeout(timer);
+    const data = res.flatMap(r => (r.status === 'fulfilled' && r.value.events) || [])
+      .map(e => ({
+        id: e.idEvent, ts: e.strTimestamp, date: e.dateEvent, time: e.strTime, league: e.strLeague,
+        home: e.strHomeTeam, away: e.strAwayTeam, idHome: e.idHomeTeam, idAway: e.idAwayTeam
+      }));
+    if (!data.length) throw new Error('Sin partidos');
+    if (res.every(r => r.status === 'fulfilled')) {
+      try { localStorage.setItem(MATCH_CACHE, JSON.stringify({ t: Date.now(), data })); } catch (err) { /* sin almacenamiento */ }
+    }
+    return data;
+  }
+
+  function addMatches(data) {
+    const keys = new Set(matchData.map(m => m.key));
+    const ids = new Set();
+    data.forEach(e => {
+      if (ids.has(e.id)) return; // el mismo partido llega por los dos equipos
+      ids.add(e.id);
+      const m = fromApi(e);
+      if (!keys.has(m.key)) { keys.add(m.key); matchData.push(m); }
+    });
+  }
+
+  const upcoming = () => matchData
+    .filter(p => p.start.getTime() + 2 * 3600e3 > Date.now() && p.start.getTime() < Date.now() + 21 * 864e5)
+    .sort((a, b) => a.start - b.start)
+    .slice(0, 6);
 
   /* ——— Recordatorios de calendario ——— */
   const icsText = s => s.replace(/\\/g, '\\\\').replace(/[,;]/g, m => '\\' + m).replace(/\n/g, '\\n');
@@ -157,12 +242,17 @@
         rrule: `FREQ=WEEKLY;BYDAY=WE;UNTIL=${CANITAS_HASTA}`
       };
     }
-    const end = new Date(match.start.getTime() + 2 * 3600e3);
-    return {
+    const base = {
       slug: 'partido', title: `${match.local} – ${match.visitante} en la Esquina`,
-      details: `${match.comp}. Lo vemos en directo en Esquina Habanera.`,
-      start: utcStamp(match.start), end: utcStamp(end), alarm: true
+      details: `${match.comp}. Lo vemos en directo en Esquina Habanera.`
     };
+    if (!match.hora) {
+      const day = dateOf(match.fecha);
+      const next = new Date(day.getFullYear(), day.getMonth(), day.getDate() + 1);
+      return { ...base, allDay: true, start: match.fecha.replace(/-/g, ''), end: isoOf(next).replace(/-/g, '') };
+    }
+    const end = new Date(match.start.getTime() + 2 * 3600e3);
+    return { ...base, start: utcStamp(match.start), end: utcStamp(end), alarm: true };
   }
 
   function googleUrl(ev) {
@@ -243,12 +333,13 @@
     if (!next) {
       box.innerHTML = `
         <h2 class="today__title">Todos los partidos</h2>
-        <p class="today__lead">Retransmitimos todos los partidos en directo. ¿Buscas uno en concreto? Pregúntanos.</p>
+        <p class="today__lead">${matchState === 'loading' ? 'Buscando el próximo partido…' : 'Retransmitimos todos los partidos en directo. ¿Buscas uno en concreto? Pregúntanos.'}</p>
         <a class="btn btn--brown btn--sm" href="#futbol">${icon('i-tv')}Fútbol</a>`;
       return;
     }
     const isToday = next.fecha === isoOf(today);
-    const when = isToday ? `Hoy a las ${next.hora}` : `${cap(longDate(dateOf(next.fecha)))} · ${next.hora}`;
+    const hora = next.hora || 'hora por confirmar';
+    const when = isToday ? (next.hora ? `Hoy a las ${next.hora}` : `Hoy · ${hora}`) : `${cap(longDate(dateOf(next.fecha)))} · ${hora}`;
     box.innerHTML = `
       <h2 class="today__title">${next.local} – ${next.visitante}</h2>
       <p class="today__lead">${when} · ${next.comp}</p>
@@ -259,17 +350,19 @@
   const tabs = $('#dayTabs');
   const panel = $('#dayPanel');
   let days = [];
+  let currentDay = 0;
 
   function itemsFor(dt) {
     const iso = isoOf(dt);
     const a = AGENDA[dt.getDay()];
     const matches = upcoming().filter(p => p.fecha === iso).map(p => ({
-      icon: 'i-tv', t: `${p.local} – ${p.visitante}`, d: `${p.comp} · ${p.hora} · En pantalla`, match: true
+      icon: 'i-tv', t: `${p.local} – ${p.visitante}`, d: `${p.comp} · ${p.hora || 'hora por confirmar'} · En pantalla`, match: true
     }));
     return [...matches, ...a.items];
   }
 
   function renderDay(i, focus) {
+    currentDay = i;
     const dt = days[i];
     const a = AGENDA[dt.getDay()];
     $$('.day', tabs).forEach((b, j) => {
@@ -299,7 +392,7 @@
     panel.classList.add('swap');
   }
 
-  function renderDays(now) {
+  function renderDays(now, selected = 0) {
     days = Array.from({ length: 7 }, (_, i) => new Date(now.y, now.m - 1, now.d + i));
     tabs.innerHTML = days.map((dt, i) => {
       const wd = dt.getDay();
@@ -322,7 +415,7 @@
         renderDay((i + dir + 7) % 7, true);
       });
     });
-    renderDay(0);
+    renderDay(selected);
   }
 
   /* ——— Partidos ——— */
@@ -331,13 +424,16 @@
     const todayIso = `${now.y}-${pad(now.m)}-${pad(now.d)}`;
     const items = upcoming();
     if (!items.length) {
-      list.innerHTML = `<li class="card matches__empty">Pronto anunciamos los próximos. Recuerda: retransmitimos todos los partidos en directo.</li>`;
+      list.innerHTML = matchState === 'loading'
+        ? `<li class="card matches__empty">Buscando los próximos partidos…</li>`
+        : `<li class="card matches__empty">Ahora mismo no tenemos los horarios a mano, pero retransmitimos todos los partidos en directo. Pregúntanos por el tuyo.</li>`;
       return;
     }
     list.innerHTML = items.map((p, i) => {
       const dt = dateOf(p.fecha);
-      const live = Date.now() >= p.start.getTime();
-      const when = p.fecha === todayIso ? `<span class="now">${live ? 'Jugándose ahora' : 'Hoy'}</span> · ${p.hora} h` : `${cap(DAY_NAMES[dt.getDay()])} · ${p.hora} h`;
+      const live = p.hora && Date.now() >= p.start.getTime();
+      const hora = p.hora ? `${p.hora} h` : 'hora por confirmar';
+      const when = p.fecha === todayIso ? `<span class="now">${live ? 'Jugándose ahora' : 'Hoy'}</span> · ${hora}` : `${cap(DAY_NAMES[dt.getDay()])} · ${hora}`;
       return `<li class="match card${p.grande ? ' match--big' : ''}">
         <div class="match__date"><span>${DAY_SHORT[dt.getDay()]}</span><b>${dt.getDate()}</b><span>${MONTHS_SHORT[dt.getMonth()]}</span></div>
         <div>
@@ -353,7 +449,7 @@
     }).join('');
     $$('[data-reserve]', list).forEach(b => b.addEventListener('click', () => {
       const p = items[+b.dataset.reserve];
-      openWhatsApp(`¡Hola, Esquina Habanera! Queremos venir a ver el ${p.local} – ${p.visitante} (${longDate(dateOf(p.fecha))}, ${p.hora}). ¿Nos guardáis sitio para ___ personas?`);
+      openWhatsApp(`¡Hola, Esquina Habanera! Queremos venir a ver el ${p.local} – ${p.visitante} (${longDate(dateOf(p.fecha))}${p.hora ? `, ${p.hora}` : ''}). ¿Nos guardáis sitio para ___ personas?`);
     }));
     $$('.cal[data-match]', list).forEach(box => mountCal(box, calEvent('match', items[+box.dataset.match])));
   }
@@ -431,6 +527,18 @@
   renderToday(now);
   renderDays(now);
   renderMatches(now);
+
+  const shortNames = EQUIPOS.map(t => t.corto);
+  $('#matchesNote').textContent = `Se actualiza solo con lo próximo de ${shortNames.slice(0, -1).join(', ')} y ${shortNames.at(-1)}. Horario de España.`;
+  fetchMatches()
+    .then(data => { addMatches(data); matchState = 'ok'; })
+    .catch(() => { matchState = matchData.length ? 'ok' : 'error'; })
+    .finally(() => {
+      const n = madridNow();
+      renderToday(n);
+      renderDays(n, currentDay);
+      renderMatches(n);
+    });
   mountCal($('.cal[data-cal="canitas"]'), calEvent('canitas'));
   mountBooking(now);
   setInterval(tick, 30000);
