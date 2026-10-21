@@ -7,88 +7,98 @@
 
   const TZ = 'Europe/Madrid';
   const WHATSAPP = '34619715885';
+  const ADDRESS = 'Carrer de les Antilles, 15, 17310 Lloret de Mar';
+  const MAPS = 'https://www.google.com/maps/dir/?api=1&destination=41.6966587,2.8316895';
   const OPEN_DAYS = [0, 2, 3, 4, 5, 6]; // 0 = domingo; los lunes cerrado
   const OPEN_AT = 10 * 60;               // 10:00
   const CLOSE_AT = 60;                   // 01:00 del día siguiente
   const DAY_NAMES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  const DAY_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
   const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  const MONTHS_SHORT = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
-  /* ——— Agenda semanal (para cambiar lo que sale cada día, editar aquí) ——— */
+  /* ——— Lo de cada día de la semana (editar aquí) ——— */
   const AGENDA = {
-    1: {
-      closed: true, title: 'Día de descanso',
-      lead: 'Los lunes bajamos la persiana. Volvemos el martes a las 10:00.',
-      items: []
-    },
-    2: {
-      title: 'Vermut y tapas',
-      lead: 'Arranca la semana en la Esquina: vermut, algo para picar y terraza.',
+    1: { closed: true, title: 'Descansamos',
+      lead: 'Normalmente los lunes bajamos la persiana. En fechas especiales abrimos: lo avisamos en Instagram.', items: [] },
+    2: { title: 'Vermut y tapas',
+      lead: 'Arrancamos la semana a las 10:00 con vermut, tapas y terraza.',
       items: [
         { icon: 'i-vermut', t: 'Vermut y tapas', d: 'Desde las 10:00, dentro o en la terraza.' },
-        { icon: 'i-tv', t: 'Noche de Champions', d: 'Si hay partido, lo ponemos en pantalla.', tag: 'Fútbol' },
-        { icon: 'i-billar', t: 'Billar y futbolín', d: 'Para la sobremesa o para la noche.' }
-      ]
-    },
-    3: {
-      title: 'Miércoles de cañitas', promo: '1 €',
-      lead: 'La caña a un euro, todos los miércoles. Hoy toca brindar.',
+        { icon: 'i-billar', t: 'Billar y futbolín', d: 'Para la sobremesa o la noche.' }
+      ] },
+    3: { title: 'Miércoles de cañitas', promo: '1 €',
+      lead: 'Durante todo el invierno, cada miércoles, la caña a 1 €.',
       items: [
-        { icon: 'i-beer', t: 'Cañitas a 1 €', d: 'La campaña de los miércoles.', tag: 'Promo' },
-        { icon: 'i-vermut', t: 'Vermut y tapas', d: 'Desde las 10:00, como cada día.' },
-        { icon: 'i-tv', t: 'Noche de Champions', d: 'Si hay partido, lo ponemos en pantalla.', tag: 'Fútbol' }
-      ]
-    },
-    4: {
-      title: 'Vermut y tapas',
-      lead: 'Media semana hecha. Pasa a por un vermut o a echar una partida.',
+        { icon: 'i-beer', t: 'Cañitas a 1 €', d: 'Todo el día, durante todo el invierno.', promo: true },
+        { icon: 'i-vermut', t: 'Vermut y tapas', d: 'Desde las 10:00, como siempre.' }
+      ] },
+    4: { title: 'Vermut y tapas',
+      lead: 'Media semana hecha: pasa a por un vermut o a echar una partida.',
       items: [
         { icon: 'i-vermut', t: 'Vermut y tapas', d: 'Desde las 10:00, dentro o en la terraza.' },
-        { icon: 'i-billar', t: 'Billar y futbolín', d: 'Retos, piques y revanchas.' },
-        { icon: 'i-tv', t: 'Fútbol', d: 'Si hay partido, se ve aquí.', tag: 'Fútbol' }
-      ]
-    },
-    5: {
-      title: 'Copas y buen rollo',
-      lead: 'Empieza el fin de semana: vermut de tarde y copas de noche.',
+        { icon: 'i-billar', t: 'Billar y futbolín', d: 'Retos, piques y revanchas.' }
+      ] },
+    5: { title: 'Viernes de vinitos',
+      lead: 'Es viernes y el cuerpo lo sabe. ¿Unos vinitos en la Esquina?',
       items: [
-        { icon: 'i-vermut', t: 'Vermut de tarde', d: 'Para salir del trabajo y desconectar.' },
-        { icon: 'i-glass', t: 'Copas', d: 'Hasta la 01:00, sin prisa.' },
-        { icon: 'i-billar', t: 'Billar y futbolín', d: 'El que pierde, paga la siguiente.' }
-      ]
-    },
-    6: {
-      title: 'Vermut y fútbol',
-      lead: 'Vermut de mediodía en la terraza y LaLiga en pantalla.',
+        { icon: 'i-wine', t: 'Vinos y vermut', d: 'Para empezar bien el fin de semana.' },
+        { icon: 'i-vermut', t: 'Cócteles y copas', d: 'Hasta la 01:00, sin prisa.' }
+      ] },
+    6: { title: 'Vermut de mediodía',
+      lead: 'Vermut en la terraza a mediodía y fútbol en directo.',
       items: [
-        { icon: 'i-vermut', t: 'La hora del vermut', d: 'A mediodía, con su aceituna.', tag: 'Mediodía' },
-        { icon: 'i-tv', t: 'LaLiga en pantalla', d: 'Los partidos del fin de semana.', tag: 'Fútbol' },
-        { icon: 'i-glass', t: 'Copas', d: 'Para alargar la noche.' }
-      ]
-    },
-    0: {
-      title: 'Vermut de domingo',
+        { icon: 'i-vermut', t: 'La hora del vermut', d: 'A mediodía, con algo para picar.' },
+        { icon: 'i-tv', t: 'Fútbol en directo', d: 'Retransmitimos todos los partidos.' }
+      ] },
+    0: { title: 'Vermut de domingo',
       lead: 'El vermut del domingo de toda la vida, y fútbol por la tarde.',
       items: [
-        { icon: 'i-vermut', t: 'La hora del vermut', d: 'A mediodía, en la terraza.', tag: 'Mediodía' },
-        { icon: 'i-tv', t: 'Fútbol', d: 'Los partidos del domingo.', tag: 'Fútbol' },
-        { icon: 'i-billar', t: 'Billar y futbolín', d: 'Para cerrar bien la semana.' }
-      ]
-    }
+        { icon: 'i-vermut', t: 'La hora del vermut', d: 'A mediodía, en la terraza.' },
+        { icon: 'i-tv', t: 'Fútbol en directo', d: 'Retransmitimos todos los partidos.' }
+      ] }
   };
 
-  /* ——— Hora de Lloret, sea cual sea la zona del visitante ——— */
-  function madridNow() {
-    const parts = new Intl.DateTimeFormat('en-GB', {
-      timeZone: TZ, weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
-    }).formatToParts(new Date());
-    const get = t => parts.find(p => p.type === t).value;
-    const day = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[get('weekday')];
-    const h = +get('hour') % 24;
-    const min = +get('minute');
-    return { day, mins: h * 60 + min, y: +get('year'), m: +get('month'), d: +get('day'), hh: get('hour').padStart(2, '0'), mm: get('minute') };
+  /* ——— Próximos partidos (hora de España). Los que ya han acabado se ocultan solos. ——— */
+  const PARTIDOS = [
+    { fecha: '2026-10-21', hora: '21:00', comp: 'Champions League', local: 'Real Madrid', visitante: 'RB Leipzig' },
+    { fecha: '2026-10-25', hora: '21:00', comp: 'LaLiga · El Clásico', local: 'FC Barcelona', visitante: 'Real Madrid', grande: true }
+  ];
+
+  /* La campaña de cañitas dura todo el invierno */
+  const CANITAS_HASTA = '20270331';
+
+  /* ——— Hora de Lloret, esté donde esté quien mira ——— */
+  const fmt = new Intl.DateTimeFormat('en-GB', {
+    timeZone: TZ, weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+  });
+  function partsAt(ms) {
+    const p = Object.fromEntries(fmt.formatToParts(new Date(ms)).map(x => [x.type, x.value]));
+    return {
+      day: { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[p.weekday],
+      y: +p.year, m: +p.month, d: +p.day, h: +p.hour % 24, min: +p.minute
+    };
   }
+  function madridNow() {
+    const p = partsAt(Date.now());
+    return { ...p, mins: p.h * 60 + p.min };
+  }
+  // Hora de Madrid → instante real
+  function madridToDate(iso, hhmm) {
+    const [y, m, d] = iso.split('-').map(Number);
+    const [h, mi] = hhmm.split(':').map(Number);
+    const guess = Date.UTC(y, m - 1, d, h, mi);
+    const offset = ms => { const p = partsAt(ms); return Date.UTC(p.y, p.m - 1, p.d, p.h, p.min) - ms; };
+    let t = guess - offset(guess);
+    t = guess - offset(t);
+    return new Date(t);
+  }
+  const pad = n => String(n).padStart(2, '0');
+  const isoOf = dt => `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`;
+  const dateOf = iso => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d); };
+  const longDate = dt => `${DAY_NAMES[dt.getDay()]} ${dt.getDate()} de ${MONTHS[dt.getMonth()]}`;
 
   function getStatus(now) {
     const { day, mins } = now;
@@ -97,7 +107,6 @@
     if (mins < CLOSE_AT && OPEN_DAYS.includes(prev)) left = CLOSE_AT - mins;
     else if (mins >= OPEN_AT && OPEN_DAYS.includes(day)) left = 24 * 60 + CLOSE_AT - mins;
     if (left !== null) return { open: true, soon: left <= 45 };
-
     if (mins < OPEN_AT && OPEN_DAYS.includes(day)) return { open: false, next: 'hoy a las 10:00' };
     for (let i = 1; i <= 7; i++) {
       const d = (day + i) % 7;
@@ -117,75 +126,6 @@
     });
   }
 
-  const icon = id => `<svg class="ico" aria-hidden="true"><use href="#${id}"/></svg>`;
-
-  /* ——— Ticket "Hoy" ——— */
-  function renderToday(now) {
-    const a = AGENDA[now.day];
-    $('#todayDate').textContent = `${DAY_NAMES[now.day]} ${now.d} de ${MONTHS[now.m - 1]}`;
-    const body = $('#todayBody');
-    if (a.closed) {
-      body.innerHTML = `
-        <h2 class="ticket__title">Hoy descansamos</h2>
-        <p class="ticket__lead">${a.lead}</p>
-        <ul class="ticket__list"><li>${icon('i-clock')}<span><strong>Martes a domingo</strong> de 10:00 a 01:00</span></li></ul>`;
-      return;
-    }
-    body.innerHTML = `
-      ${a.promo ? `<span class="stamp">${a.promo}</span>` : ''}
-      <h2 class="ticket__title">${a.title}</h2>
-      <p class="ticket__lead">${a.lead}</p>
-      <ul class="ticket__list">${a.items.map(i => `<li>${icon(i.icon)}<span><strong>${i.t}.</strong> ${i.d}</span></li>`).join('')}</ul>`;
-  }
-
-  /* ——— Semana interactiva ——— */
-  const keys = $$('.daykey');
-  const panel = $('#weekPanel');
-  let today = 0;
-
-  function renderDay(day, focus) {
-    keys.forEach(k => {
-      const sel = +k.dataset.day === day;
-      k.setAttribute('aria-selected', sel);
-      k.tabIndex = sel ? 0 : -1;
-      if (sel && focus) k.focus();
-    });
-    const a = AGENDA[day];
-    const kicker = (day === today ? 'Hoy · ' : '') + cap(DAY_NAMES[day]);
-    const list = a.closed
-      ? `<div class="wp__closed"><div><strong>Persiana bajada</strong>Nos vemos el martes con el vermut a punto.</div></div>`
-      : `<ul class="wp__list">${a.items.map(i => `
-          <li><span class="wp__ico">${icon(i.icon)}</span>
-            <div><strong>${i.t}${i.tag ? `<span class="tag${i.tag === 'Promo' ? ' tag--red' : ''}">${i.tag}</span>` : ''}</strong><p>${i.d}</p></div>
-          </li>`).join('')}</ul>`;
-    panel.innerHTML = `
-      <div class="wp__head">
-        ${a.promo ? `<span class="stamp">${a.promo}</span>` : ''}
-        <p class="wp__kicker">${kicker}</p>
-        <h3 class="wp__title">${a.title}</h3>
-        <p class="wp__hours">${icon('i-clock')}${a.closed ? 'Cerrado' : '10:00 – 01:00'}</p>
-        <p class="wp__lead">${a.lead}</p>
-      </div>
-      ${list}`;
-    panel.classList.remove('swap');
-    void panel.offsetWidth;
-    panel.classList.add('swap');
-  }
-
-  keys.forEach((k, idx) => {
-    const day = +k.dataset.day;
-    if (AGENDA[day].closed) k.classList.add('is-closed');
-    k.addEventListener('click', () => renderDay(day));
-    k.addEventListener('keydown', e => {
-      const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
-      if (!dir) return;
-      e.preventDefault();
-      const next = keys[(idx + dir + keys.length) % keys.length];
-      renderDay(+next.dataset.day, true);
-    });
-  });
-
-  /* ——— Horario ——— */
   function renderHours(now) {
     $$('#hours tr').forEach(tr => {
       const d = +tr.dataset.day;
@@ -194,187 +134,94 @@
     });
   }
 
-  /* ——— ¿Cuándo es el próximo miércoles? ——— */
-  function renderCanitas(now) {
-    const el = $('#canitasWhen');
-    const span = $('span', el);
-    const wait = (3 - now.day + 7) % 7;
-    if (wait === 0) {
-      el.classList.add('is-today');
-      span.textContent = '¡Hoy es miércoles! Hoy toca.';
-      return;
+  const icon = id => `<svg class="ico" aria-hidden="true"><use href="#${id}"/></svg>`;
+  const upcoming = () => PARTIDOS
+    .map(p => ({ ...p, start: madridToDate(p.fecha, p.hora) }))
+    .filter(p => p.start.getTime() + 2 * 3600e3 > Date.now())
+    .sort((a, b) => a.start - b.start);
+
+  /* ——— Recordatorios de calendario ——— */
+  const icsText = s => s.replace(/\\/g, '\\\\').replace(/[,;]/g, m => '\\' + m).replace(/\n/g, '\\n');
+  const utcStamp = dt => dt.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+
+  function calEvent(kind, match) {
+    if (kind === 'canitas') {
+      const now = madridNow();
+      const today = new Date(now.y, now.m - 1, now.d);
+      const first = new Date(now.y, now.m - 1, now.d + ((3 - today.getDay() + 7) % 7));
+      const next = new Date(first.getFullYear(), first.getMonth(), first.getDate() + 1);
+      return {
+        slug: 'canitas', title: 'Cañitas a 1 € · Esquina Habanera',
+        details: 'Todos los miércoles, durante todo el invierno, la caña a 1 €.',
+        allDay: true, start: isoOf(first).replace(/-/g, ''), end: isoOf(next).replace(/-/g, ''),
+        rrule: `FREQ=WEEKLY;BYDAY=WE;UNTIL=${CANITAS_HASTA}`
+      };
     }
-    el.classList.remove('is-today');
-    const next = new Date(now.y, now.m - 1, now.d + wait);
-    span.textContent = `Próximo miércoles: ${next.getDate()} de ${MONTHS[next.getMonth()]} · ${wait === 1 ? 'es mañana' : `faltan ${wait} días`}`;
+    const end = new Date(match.start.getTime() + 2 * 3600e3);
+    return {
+      slug: 'partido', title: `${match.local} – ${match.visitante} en la Esquina`,
+      details: `${match.comp}. Lo vemos en directo en Esquina Habanera.`,
+      start: utcStamp(match.start), end: utcStamp(end), alarm: true
+    };
   }
 
-  function tick() {
-    const now = madridNow();
-    today = now.day;
-    renderStatus(now);
-    renderHours(now);
-    renderCanitas(now);
-    $('#boardClock').textContent = `${now.hh}:${now.mm}`;
-    return now;
+  function googleUrl(ev) {
+    const q = new URLSearchParams({ action: 'TEMPLATE', text: ev.title, dates: `${ev.start}/${ev.end}`, details: ev.details, location: `Esquina Habanera, ${ADDRESS}`, ctz: TZ });
+    if (ev.rrule) q.set('recur', `RRULE:${ev.rrule}`);
+    return `https://calendar.google.com/calendar/render?${q}`;
   }
 
-  const now = tick();
-  renderToday(now);
-  renderDay(now.day);
-  keys.forEach(k => k.classList.toggle('is-today', +k.dataset.day === now.day));
-  setInterval(tick, 30000);
-
-  /* ——— Tirar la caña ——— */
-  (() => {
-    const btn = $('#pourBtn'), reset = $('#pourReset'), msg = $('#pourMsg');
-    const beer = $('#beer'), beerClip = $('#beerClip'), foam = $('#foam'), caps = $('#foamCaps');
-    const stream = $('#stream'), handle = $('#tapHandle'), drips = $('#drips');
-    const TOP = 112, BOTTOM = 326, H = BOTTOM - TOP, SPOUT = 64;
-    const RATE = 0.36; // vaso por segundo
-    let v = 0, pouring = false, done = false, last = 0, raf = 0;
-
-    function draw() {
-      const total = Math.min(v, 1);
-      const foamF = Math.min(0.15, v * 0.17);
-      const beerTop = BOTTOM - Math.max(0, total - foamF) * H;
-      const foamTop = BOTTOM - total * H;
-      beer.setAttribute('y', beerTop);
-      beerClip.setAttribute('y', beerTop + 4);
-      foam.setAttribute('y', foamTop);
-      foam.setAttribute('height', Math.max(0, beerTop - foamTop + 2));
-      caps.setAttribute('transform', `translate(0 ${foamTop + 2})`);
-      caps.setAttribute('opacity', v > 0.02 ? 1 : 0);
-      stream.setAttribute('height', pouring ? Math.max(0, foamTop - SPOUT) : 0);
-      const over = Math.max(0, v - 1);
-      drips.style.opacity = Math.min(1, over * 10);
-      drips.style.transform = `scaleY(${Math.min(1, over * 7)})`;
-    }
-
-    function loop(t) {
-      const dt = Math.min(0.05, (t - last) / 1000);
-      last = t;
-      v += dt * RATE;
-      draw();
-      if (v >= 1.15) return stop();
-      raf = requestAnimationFrame(loop);
-    }
-
-    function start() {
-      if (pouring || done) return;
-      pouring = true;
-      btn.classList.add('is-pressed');
-      handle.classList.add('is-open');
-      msg.removeAttribute('data-result');
-      msg.textContent = 'Tirando…';
-      last = performance.now();
-      raf = requestAnimationFrame(loop);
-    }
-
-    function stop() {
-      if (!pouring) return;
-      pouring = false;
-      cancelAnimationFrame(raf);
-      btn.classList.remove('is-pressed');
-      handle.classList.remove('is-open');
-      draw();
-      judge();
-    }
-
-    function judge() {
-      let text, result = '';
-      if (v < 0.6) text = 'Eso es un culín. Mantén pulsado un poco más.';
-      else if (v < 0.86) text = 'Casi… a esta caña le falta un dedo. Dale otro toque.';
-      else if (v <= 1.0) { text = '¡Caña perfecta! Los miércoles, a 1 €.'; result = 'perfect'; }
-      else { text = 'Se te ha ido la espuma. Mejor que te la tire el camarero.'; result = 'over'; }
-      msg.textContent = text;
-      if (result) {
-        msg.dataset.result = result;
-        done = true;
-        btn.hidden = true;
-        reset.hidden = false;
-      }
-    }
-
-    btn.addEventListener('pointerdown', e => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      btn.setPointerCapture?.(e.pointerId);
-      start();
-    });
-    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => btn.addEventListener(ev, stop));
-    btn.addEventListener('contextmenu', e => e.preventDefault());
-    btn.addEventListener('keydown', e => {
-      if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); start(); }
-    });
-    btn.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter') stop(); });
-    btn.addEventListener('blur', stop);
-
-    reset.addEventListener('click', () => {
-      v = 0; done = false;
-      draw();
-      reset.hidden = true;
-      btn.hidden = false;
-      msg.removeAttribute('data-result');
-      msg.textContent = 'Suelta cuando la espuma llegue al borde.';
-      btn.focus();
-    });
-    draw();
-  })();
-
-  /* ——— Marcador ——— */
-  (() => {
-    const btn = $('#goalBtn'), digit = $('#goalsHome'), msg = $('#boardMsg');
+  function downloadIcs(ev) {
     const lines = [
-      'Aquí los goles se cantan el doble.',
-      'Con caña en la mano sabe mejor.',
-      'Ni el VAR lo anula.',
-      'Tu sofá no lo celebra igual.',
-      'La barra entera en pie.',
-      'Esto en pantalla grande se vive de otra manera.'
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Esquina Habanera//Web//ES', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `UID:${ev.slug}-${ev.start}@esquinahabanera`,
+      `DTSTAMP:${utcStamp(new Date())}`,
+      ev.allDay ? `DTSTART;VALUE=DATE:${ev.start}` : `DTSTART:${ev.start}`,
+      ev.allDay ? `DTEND;VALUE=DATE:${ev.end}` : `DTEND:${ev.end}`,
+      ...(ev.rrule ? [`RRULE:${ev.rrule}`] : []),
+      `SUMMARY:${icsText(ev.title)}`,
+      `DESCRIPTION:${icsText(ev.details)}`,
+      `LOCATION:${icsText(`Esquina Habanera, ${ADDRESS}`)}`,
+      ...(ev.alarm ? ['BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${icsText(ev.title)}`, 'TRIGGER:-PT1H', 'END:VALARM'] : []),
+      'END:VEVENT', 'END:VCALENDAR'
     ];
-    let goals = 1;
-    btn.addEventListener('click', () => {
-      goals = goals >= 9 ? 0 : goals + 1;
-      digit.classList.remove('is-flipping');
-      void digit.offsetWidth;
-      digit.classList.add('is-flipping');
-      setTimeout(() => { digit.textContent = goals; }, 190);
-      msg.textContent = goals === 0 ? 'Empieza otro partido. ¿Lo vemos juntos?' : lines[(goals - 1) % lines.length];
+    const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `esquina-habanera-${ev.slug}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+
+  // Botón "Recordármelo" con su menú (Google Calendar o archivo para Apple/Outlook)
+  function mountCal(box, ev) {
+    box.innerHTML = `
+      <button class="btn btn--ghost btn--sm cal__btn" type="button" aria-expanded="false">${icon('i-bell')}Recordármelo</button>
+      <div class="cal__menu" role="menu" hidden>
+        <a role="menuitem" href="${googleUrl(ev)}" target="_blank" rel="noopener">${icon('i-cal')}Google Calendar</a>
+        <button role="menuitem" type="button" data-ics>${icon('i-cal')}iPhone, Outlook (.ics)</button>
+      </div>`;
+    const btn = $('.cal__btn', box), menu = $('.cal__menu', box);
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = menu.hidden;
+      closeCals();
+      menu.hidden = !open;
+      btn.setAttribute('aria-expanded', open);
     });
-  })();
-
-  /* ——— Ritual del vermut ——— */
-  (() => {
-    const svg = $('#ritualSvg'), cap = $('#ritualCap'), next = $('#ritualNext'), reset = $('#ritualReset');
-    const steps = $$('.step');
-    const captions = ['Empieza por el hielo.', 'Ahora, el vermut.', 'Un toque de naranja…', '…y su aceituna.', 'Para acabar, un chorrito de sifón.', '¡Salud! Y a la terraza.'];
-    let stage = 0;
-
-    function setStage(n) {
-      stage = Math.max(0, Math.min(5, n));
-      for (let i = 1; i <= 5; i++) svg.classList.toggle(`s${i}`, stage >= i);
-      steps.forEach((s, i) => {
-        s.classList.toggle('is-done', i < stage);
-        s.classList.toggle('is-current', i === stage);
-        s.setAttribute('aria-pressed', i < stage);
-      });
-      cap.textContent = captions[stage];
-      next.disabled = stage >= 5;
-    }
-
-    steps.forEach(s => s.addEventListener('click', () => {
-      const n = +s.dataset.step;
-      setStage(n === stage ? n - 1 : n);
-    }));
-    next.addEventListener('click', () => setStage(stage + 1));
-    reset.addEventListener('click', () => setStage(0));
-    setStage(0);
-  })();
+    $('[data-ics]', box).addEventListener('click', () => { downloadIcs(ev); closeCals(); });
+    $('a', menu).addEventListener('click', closeCals);
+  }
+  function closeCals() {
+    $$('.cal__menu').forEach(m => { m.hidden = true; });
+    $$('.cal__btn').forEach(b => b.setAttribute('aria-expanded', 'false'));
+  }
+  document.addEventListener('click', e => { if (!e.target.closest('.cal')) closeCals(); });
 
   /* ——— WhatsApp ——— */
-  const openWhatsApp = text => window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
-
+  const openWhatsApp = (text, to = WHATSAPP) => window.open(`https://wa.me/${to}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
   function flagInvalid(input) {
     input.classList.remove('is-invalid');
     void input.offsetWidth;
@@ -383,61 +230,210 @@
     input.addEventListener('input', () => input.classList.remove('is-invalid'), { once: true });
   }
 
+  /* ——— Hoy ——— */
+  function renderToday(now) {
+    const today = new Date(now.y, now.m - 1, now.d);
+    const a = AGENDA[now.day];
+    $('#todayDate').textContent = longDate(today);
+    $('#todayTitle').innerHTML = a.closed ? 'Hoy descansamos' : `${a.title}${a.promo ? ` <span class="promo-tag">${a.promo}</span>` : ''}`;
+    $('#todayLead').textContent = a.lead;
+
+    const box = $('#todayMatch');
+    const next = upcoming()[0];
+    if (!next) {
+      box.innerHTML = `
+        <h2 class="today__title">Todos los partidos</h2>
+        <p class="today__lead">Retransmitimos todos los partidos en directo. ¿Buscas uno en concreto? Pregúntanos.</p>
+        <a class="btn btn--brown btn--sm" href="#futbol">${icon('i-tv')}Fútbol</a>`;
+      return;
+    }
+    const isToday = next.fecha === isoOf(today);
+    const when = isToday ? `Hoy a las ${next.hora}` : `${cap(longDate(dateOf(next.fecha)))} · ${next.hora}`;
+    box.innerHTML = `
+      <h2 class="today__title">${next.local} – ${next.visitante}</h2>
+      <p class="today__lead">${when} · ${next.comp}</p>
+      <a class="btn btn--brown btn--sm" href="#futbol">${icon('i-tv')}${isToday ? 'Reservar sitio' : 'Ver partidos'}</a>`;
+  }
+
+  /* ——— Los próximos 7 días ——— */
+  const tabs = $('#dayTabs');
+  const panel = $('#dayPanel');
+  let days = [];
+
+  function itemsFor(dt) {
+    const iso = isoOf(dt);
+    const a = AGENDA[dt.getDay()];
+    const matches = upcoming().filter(p => p.fecha === iso).map(p => ({
+      icon: 'i-tv', t: `${p.local} – ${p.visitante}`, d: `${p.comp} · ${p.hora} · En pantalla`, match: true
+    }));
+    return [...matches, ...a.items];
+  }
+
+  function renderDay(i, focus) {
+    const dt = days[i];
+    const a = AGENDA[dt.getDay()];
+    $$('.day', tabs).forEach((b, j) => {
+      b.setAttribute('aria-selected', j === i);
+      b.tabIndex = j === i ? 0 : -1;
+      if (j === i && focus) b.focus();
+    });
+    const items = itemsFor(dt);
+    const kicker = i === 0 ? 'Hoy' : i === 1 ? 'Mañana' : cap(DAY_NAMES[dt.getDay()]);
+    panel.innerHTML = `
+      <div class="dp__head">
+        <p class="label">${kicker}</p>
+        <p class="dp__date">${cap(DAY_NAMES[dt.getDay()])} ${dt.getDate()}</p>
+        <h3 class="dp__title">${a.title}${a.promo ? ` <span class="promo-tag">${a.promo}</span>` : ''}</h3>
+        <p class="dp__hours">${icon('i-clock')}${a.closed ? 'Cerrado' : '10:00 – 01:00'}</p>
+        <p class="dp__lead">${a.lead}</p>
+      </div>
+      ${a.closed && !items.length
+        ? `<div class="dp__closed">Volvemos el martes a las 10:00.<br>Mientras, puedes <a href="#reservar">dejar tu reserva</a>.</div>`
+        : `<ul class="dp__list">${items.map(it => `
+            <li class="${it.match ? 'is-match' : it.promo ? 'is-promo' : ''}">
+              <span class="dp__ico">${icon(it.icon)}</span>
+              <div><strong>${it.t}</strong><p>${it.d}</p></div>
+            </li>`).join('')}</ul>`}`;
+    panel.classList.remove('swap');
+    void panel.offsetWidth;
+    panel.classList.add('swap');
+  }
+
+  function renderDays(now) {
+    days = Array.from({ length: 7 }, (_, i) => new Date(now.y, now.m - 1, now.d + i));
+    tabs.innerHTML = days.map((dt, i) => {
+      const wd = dt.getDay();
+      const cls = ['day',
+        AGENDA[wd].closed ? 'is-closed' : '',
+        AGENDA[wd].promo ? 'has-promo' : '',
+        upcoming().some(p => p.fecha === isoOf(dt)) ? 'has-match' : ''].join(' ');
+      return `<button class="${cls}" role="tab" aria-controls="dayPanel" aria-label="${longDate(dt)}">
+        <span class="day__wd">${i === 0 ? 'Hoy' : DAY_SHORT[wd]}</span>
+        <span class="day__n">${dt.getDate()}</span>
+        <span class="day__dot"></span>
+      </button>`;
+    }).join('');
+    $$('.day', tabs).forEach((b, i) => {
+      b.addEventListener('click', () => renderDay(i));
+      b.addEventListener('keydown', e => {
+        const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!dir) return;
+        e.preventDefault();
+        renderDay((i + dir + 7) % 7, true);
+      });
+    });
+    renderDay(0);
+  }
+
+  /* ——— Partidos ——— */
+  function renderMatches(now) {
+    const list = $('#matches');
+    const todayIso = `${now.y}-${pad(now.m)}-${pad(now.d)}`;
+    const items = upcoming();
+    if (!items.length) {
+      list.innerHTML = `<li class="card matches__empty">Pronto anunciamos los próximos. Recuerda: retransmitimos todos los partidos en directo.</li>`;
+      return;
+    }
+    list.innerHTML = items.map((p, i) => {
+      const dt = dateOf(p.fecha);
+      const live = Date.now() >= p.start.getTime();
+      const when = p.fecha === todayIso ? `<span class="now">${live ? 'Jugándose ahora' : 'Hoy'}</span> · ${p.hora} h` : `${cap(DAY_NAMES[dt.getDay()])} · ${p.hora} h`;
+      return `<li class="match card${p.grande ? ' match--big' : ''}">
+        <div class="match__date"><span>${DAY_SHORT[dt.getDay()]}</span><b>${dt.getDate()}</b><span>${MONTHS_SHORT[dt.getMonth()]}</span></div>
+        <div>
+          <p class="match__comp">${p.comp}</p>
+          <p class="match__teams">${p.local} – ${p.visitante}</p>
+          <p class="match__time">${when}</p>
+          <div class="match__actions">
+            <button class="btn btn--cream btn--sm" type="button" data-reserve="${i}">${icon('i-wa')}Reservar sitio</button>
+            <div class="cal" data-match="${i}"></div>
+          </div>
+        </div>
+      </li>`;
+    }).join('');
+    $$('[data-reserve]', list).forEach(b => b.addEventListener('click', () => {
+      const p = items[+b.dataset.reserve];
+      openWhatsApp(`¡Hola, Esquina Habanera! Queremos venir a ver el ${p.local} – ${p.visitante} (${longDate(dateOf(p.fecha))}, ${p.hora}). ¿Nos guardáis sitio para ___ personas?`);
+    }));
+    $$('.cal[data-match]', list).forEach(box => mountCal(box, calEvent('match', items[+box.dataset.match])));
+  }
+
   $('#askForm').addEventListener('submit', e => {
     e.preventDefault();
     const team = $('#askTeam');
     if (!team.value.trim()) return flagInvalid(team);
-    openWhatsApp(`¡Hola, Esquina Habanera! ¿Vais a poner el partido «${team.value.trim()}» (${$('#askWhen').value})? ⚽`);
+    openWhatsApp(`¡Hola, Esquina Habanera! ¿Vais a poner el partido «${team.value.trim()}»? ⚽`);
   });
 
-  (() => {
-    const form = $('#grupo'), name = $('#bName'), date = $('#bDate'), time = $('#bTime'), note = $('#bNote');
+  /* ——— Reservar o invitar ——— */
+  function mountBooking(now) {
+    const form = $('#booking'), name = $('#bName'), date = $('#bDate'), time = $('#bTime'), note = $('#bNote');
     const people = $('#bPeople'), warn = $('#bWarn');
     let count = 4;
-
-    const iso = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    date.min = iso(now.y, now.m, now.d);
-    date.value = iso(now.y, now.m, now.d);
+    date.min = `${now.y}-${pad(now.m)}-${pad(now.d)}`;
+    // Por defecto: hoy si abrimos, si no el próximo día abierto
+    let first = new Date(now.y, now.m - 1, now.d);
+    while (!OPEN_DAYS.includes(first.getDay())) first = new Date(first.getFullYear(), first.getMonth(), first.getDate() + 1);
+    date.value = isoOf(first);
 
     $$('.stepper__btn', form).forEach(b => b.addEventListener('click', () => {
       count = Math.max(1, Math.min(40, count + +b.dataset.delta));
       people.textContent = count;
     }));
 
-    function chosenDay() {
-      if (!date.value) return null;
-      const [y, m, d] = date.value.split('-').map(Number);
-      return new Date(y, m - 1, d);
-    }
-
+    const chosen = () => date.value ? dateOf(date.value) : null;
     function checkDay() {
-      const d = chosenDay();
+      const d = chosen();
       const closed = d && !OPEN_DAYS.includes(d.getDay());
       warn.hidden = !closed;
-      if (closed) warn.textContent = 'Los lunes cerramos. Elige otro día, de martes a domingo.';
+      if (closed) warn.textContent = 'Los lunes normalmente cerramos. Elige otro día, de martes a domingo.';
       return !closed;
     }
     date.addEventListener('change', checkDay);
+    const plan = () => $('input[name="plan"]:checked', form).value;
 
     form.addEventListener('submit', e => {
       e.preventDefault();
       if (!name.value.trim()) return flagInvalid(name);
-      if (!date.value) return flagInvalid(date);
-      if (!checkDay()) return flagInvalid(date);
-      const d = chosenDay();
-      const reason = $('input[name="reason"]:checked', form).value;
+      if (!date.value || !checkDay()) return flagInvalid(date);
       const lines = [
-        '¡Hola, Esquina Habanera! Queremos ir en grupo:',
+        '¡Hola, Esquina Habanera! Me gustaría reservar:',
         `· Nombre: ${name.value.trim()}`,
         `· Personas: ${count}`,
-        `· Día: ${DAY_NAMES[d.getDay()]} ${d.getDate()} de ${MONTHS[d.getMonth()]}`,
+        `· Día: ${longDate(chosen())}`,
         `· Hora: ${time.value || 'por confirmar'}`,
-        `· Motivo: ${reason}`
+        `· Plan: ${plan()}`
       ];
       if (note.value.trim()) lines.push(`· Comentario: ${note.value.trim()}`);
       openWhatsApp(lines.join('\n'));
     });
-  })();
+
+    $('#bShare').addEventListener('click', async () => {
+      if (!date.value || !checkDay()) return flagInvalid(date);
+      const what = { Vermut: 'Vermut', Partido: 'Partido', 'Cañitas': 'Cañitas', 'Cumpleaños': 'Cumple', Copas: 'Copas' }[plan()];
+      const text = `¿Te vienes? ${what} en Esquina Habanera el ${longDate(chosen())}${time.value ? ` a las ${time.value}` : ''} 🍸\n📍 ${ADDRESS}\n${MAPS}`;
+      if (navigator.share) {
+        try { await navigator.share({ title: 'Esquina Habanera', text }); return; }
+        catch (err) { if (err.name === 'AbortError') return; }
+      }
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+    });
+  }
+
+  /* ——— Arranque ——— */
+  function tick() {
+    const now = madridNow();
+    renderStatus(now);
+    renderHours(now);
+    return now;
+  }
+  const now = tick();
+  renderToday(now);
+  renderDays(now);
+  renderMatches(now);
+  mountCal($('.cal[data-cal="canitas"]'), calEvent('canitas'));
+  mountBooking(now);
+  setInterval(tick, 30000);
 
   /* ——— Cabecera y menú ——— */
   const topbar = $('#topbar'), nav = $('#nav'), menuBtn = $('#menuBtn');
@@ -454,27 +450,25 @@
   }
   menuBtn.addEventListener('click', () => setMenu(!nav.classList.contains('is-open')));
   $$('a', nav).forEach(a => a.addEventListener('click', () => setMenu(false)));
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { setMenu(false); closeCals(); } });
 
-  // Enlace activo según la sección visible
-  const links = $$('.nav a[href^="#"]');
-  const spy = new IntersectionObserver(entries => {
-    entries.forEach(en => {
-      if (!en.isIntersecting) return;
-      links.forEach(a => a.classList.toggle('is-active', a.getAttribute('href') === `#${en.target.id}`));
-    });
-  }, { rootMargin: '-45% 0px -50% 0px' });
-  $$('main section[id]').forEach(s => spy.observe(s));
+  const links = $$('.nav a');
+  const reveal = 'IntersectionObserver' in window;
+  if (reveal) {
+    const spy = new IntersectionObserver(entries => entries.forEach(en => {
+      if (en.isIntersecting) links.forEach(a => a.classList.toggle('is-active', a.getAttribute('href') === `#${en.target.id}`));
+    }), { rootMargin: '-45% 0px -50% 0px' });
+    $$('main section[id]').forEach(s => spy.observe(s));
 
-  /* ——— Aparición al hacer scroll ——— */
-  const reveal = new IntersectionObserver(entries => {
-    entries.forEach(en => {
+    const io = new IntersectionObserver(entries => entries.forEach(en => {
       if (!en.isIntersecting) return;
       en.target.classList.add('is-in');
-      reveal.unobserve(en.target);
-    });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-  $$('[data-reveal]').forEach(el => reveal.observe(el));
+      io.unobserve(en.target);
+    }), { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+    $$('[data-reveal]').forEach(el => io.observe(el));
+  } else {
+    $$('[data-reveal]').forEach(el => el.classList.add('is-in'));
+  }
 
   $('#year').textContent = now.y;
 })();
